@@ -11,3 +11,5 @@ RUN yum -y update \
     && yum clean all
 
 ENV PATH="/usr/local/miniconda/bin:${PATH}"
+
+ENTRYPOINT exec "$@"
