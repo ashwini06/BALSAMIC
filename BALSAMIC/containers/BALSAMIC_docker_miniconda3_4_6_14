@@ -12,4 +12,5 @@ RUN yum -y update \
 
 ENV PATH="/usr/local/miniconda/bin:${PATH}"
 
-ENTRYPOINT exec "$@"
+ENTRYPOINT ["exec", "$@"]
+CMD [ "/bin/bash" ]
