@@ -22,8 +22,10 @@ LOG = logging.getLogger(__name__)
 @click.option("--normal", default="NORMAL", help="sample name for normal sample")
 @click.option("--sv-vcf", default="manta", help="variant caller to load as vcf_cancer_sv") 
 @click.option("--customer-id", required=True, help="customer id for scout config")
+@click.option("--panel-name", help="panel name for scout config. Must exist in scout.")
+@click.option("--panel-name-default", help="default panel name for scout config. Must exist in scout.")
 @click.pass_context
-def scout(context, sample_config, snv_vcf, sv_vcf, customer_id, tumor, normal):
+def scout(context, sample_config, snv_vcf, sv_vcf, customer_id, tumor, normal, panel_name, panel_name_default):
     '''
     Create a scout config.yaml file
     '''
@@ -33,7 +35,9 @@ def scout(context, sample_config, snv_vcf, sv_vcf, customer_id, tumor, normal):
     with open(sample_config, 'r') as fn:
         sample_config = json.load(fn)
     case_name=sample_config['analysis']['case_id']
-    capture_kit=os.path.basename(sample_config['panel']['capture_kit'])
+    capture_kit = 'none_wgs'
+    if 'panel' in sample_config:
+        capture_kit=os.path.basename(sample_config['panel']['capture_kit'])
 
     result_dir = get_result_dir(sample_config)
     dst_directory = os.path.join(result_dir, 'scout')
@@ -57,6 +61,17 @@ def scout(context, sample_config, snv_vcf, sv_vcf, customer_id, tumor, normal):
         del deliver_wildcards['bam']['normal']
         scout_config['samples'].pop(1)
 
+    # set panels:
+    if panel_name:
+        scout_config['gene_panels'] = [panel_name]
+    else:
+        scout_config.pop('gene_panels', None)
+
+    if panel_name_default:
+        scout_config['default_gene_panels'] = [panel_name_default]
+    else:
+        scout_config.pop('default_gene_panels', None)
+    
     scout_config['owner'] = customer_id
     scout_config['family'] = case_name
     scout_config['family_name'] = case_name
